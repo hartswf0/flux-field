@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Archetype Relationship Exploration</title>
+    <style>
+        :root {
+            --bg-light: #f4f4f4;
+            --bg-white: #ffffff;
+            --primary-color: #2c3e50;
+            --secondary-color: #3498db;
+            --accent-color: #e74c3c;
+            --text-dark: #333;
+            --border-radius: 12px;
+        }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+            background-color: var(--bg-light);
+            line-height: 1.6;
+            padding: 20px;
+        }
+        .container {
+            background-color: var(--bg-white);
+            border-radius: var(--border-radius);
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 30px;
+        }
+        h1, h2 {
+            color: var(--primary-color);
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .selector-group {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+        .selector {
+            flex: 1;
+            margin: 0 10px;
+        }
+        select {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+        }
+        .btn {
+            display: block;
+            width: 200px;
+            margin: 20px auto;
+            padding: 10px;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            text-decoration: none;
+            text-align: center;
+        }
+        .btn:hover {
+            background-color: var(--secondary-color);
+        }
+        #compatibilityResult, #archetypeDetails {
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+        .compatibility-score {
+            display: flex;
+            height: 20px;
+            margin: 10px 0;
+        }
+        .score-bar {
+            flex: 1;
+            border-radius: 10px;
+        }
+        .archetype-card {
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+        .tab-container {
+            display: flex;
+            margin-bottom: 20px;
+        }
+        .tab {
+            flex: 1;
+            padding: 10px;
+            text-align: center;
+            background-color: #e9ecef;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        .tab.active {
+            background-color: var(--primary-color);
+            color: white;
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="tab-container">
+            <div class="tab active" onclick="switchTab('compatibility')">Relationship Compatibility</div>
+            <div class="tab" onclick="switchTab('archetypes')">Archetype Details</div>
+        </div>
+
+        <div id="compatibilityTab" class="tab-content active">
+            <h2>Archetype Relationship Alignment Checker</h2>
+            <div class="selector-group">
+                <div class="selector">
+                    <label>Partner 1's Archetype:</label>
+                    <select id="partner1Select">
+                        <option value="Navigator">The Navigator</option>
+                        <option value="Dreamer">The Dreamer</option>
+                        <option value="Engineer">The Engineer</option>
+                        <option value="Elder">The Elder</option>
+                        <option value="Opportunist">The Opportunist</option>
+                        <option value="Shaman">The Shaman/Outsider</option>
+                        <option value="RebelCrewman">The Rebel Crewman</option>
+                        <option value="Oracle">The Oracle</option>
+                    </select>
+                </div>
+                <div class="selector">
+                    <label>Partner 2's Archetype:</label>
+                    <select id="partner2Select">
+                        <option value="Navigator">The Navigator</option>
+                        <option value="Dreamer">The Dreamer</option>
+                        <option value="Engineer">The Engineer</option>
+                        <option value="Elder">The Elder</option>
+                        <option value="Opportunist">The Opportunist</option>
+                        <option value="Shaman">The Shaman/Outsider</option>
+                        <option value="RebelCrewman">The Rebel Crewman</option>
+                        <option value="Oracle">The Oracle</option>
+                    </select>
+                </div>
+            </div>
+            <button class="btn" onclick="checkCompatibility()">Check Compatibility</button>
+            <div id="compatibilityResult"></div>
+        </div>
+
+        <div id="archetypesTab" class="tab-content">
+            <h2>Archetype Exploration</h2>
+            <div id="archetypeDetails"></div>
+            <a href="index.html" class="btn">Back to Home</a>
+        </div>
+    </div>
+
+    <script>
+    const archetypeData = {
+        "Navigator": {
+            name: "The Navigator",
+            category: "Practical, Individual, Negentropic",
+            alignment: "Lawful Neutral",
+            beliefs: "Material facts and mapping the unknown bring order.",
+            desires: "To chart and understand the world methodically.",
+            intentions: "Impose structure and produce reliable records of what's encountered.",
+            shadow: "The Wanderer (loses purpose without structure)"
+        },
+        "Dreamer": {
+            name: "The Dreamer",
+            category: "Symbolic, Individual, Negentropic",
+            alignment: "Neutral Good",
+            beliefs: "Symbolic visions guide reality.",
+            desires: "To interpret signs, maintain deeper meaning.",
+            intentions: "Provide moral and spiritual compass through stable symbolic frameworks.",
+            shadow: "The Doubter (sinks into emptiness without meaning)"
+        },
+        "Engineer": {
+            name: "The Engineer",
+            category: "Practical, Collective, Negentropic",
+            alignment: "Lawful Good",
+            beliefs: "Collective order and shared effort secure survival.",
+            desires: "To make everyone function together seamlessly.",
+            intentions: "Optimize resources and stabilize group operations.",
+            shadow: "The Hoarder (collects without sharing)"
+        },
+        "Elder": {
+            name: "The Elder",
+            category: "Symbolic, Collective, Negentropic",
+            alignment: "Lawful Good",
+            beliefs: "Cultural rituals and shared symbols preserve harmony.",
+            desires: "To maintain ancestral rites and societal cohesion.",
+            intentions: "Sustain tradition and reinforce the group's sacred structure.",
+            shadow: "Tradition-Breaker (loses identity without rituals)"
+        },
+        "Opportunist": {
+            name: "The Opportunist",
+            category: "Practical, Individual, Entropic",
+            alignment: "Chaotic Neutral",
+            beliefs: "Material advantage is personal and ever-shifting.",
+            desires: "To seize moments of gain amid instability.",
+            intentions: "Exploit opportunities in a chaotic environment.",
+            shadow: "The Thief (descends into selfish chaos)"
+        },
+        "Shaman": {
+            name: "The Shaman/Outsider",
+            category: "Symbolic, Individual, Entropic",
+            alignment: "Chaotic Good",
+            beliefs: "Truth emerges from flux and hidden meanings.",
+            desires: "To find personal enlightenment in unstable signs.",
+            intentions: "Inspire others through unpredictable revelations.",
+            shadow: "The Trickster (becomes misleading without insight)"
+        },
+        "RebelCrewman": {
+            name: "The Rebel Crewman",
+            category: "Practical, Collective, Entropic",
+            alignment: "Chaotic Neutral",
+            beliefs: "Strict order oppresses; collective might must be unsettled.",
+            desires: "To break stagnant patterns through collective upheaval.",
+            intentions: "Disrupt stable structures to provoke growth or liberation.",
+            shadow: "The Saboteur (destroys unity for chaos's sake)"
+        },
+        "Oracle": {
+            name: "The Oracle",
+            category: "Symbolic, Collective, Entropic",
+            alignment: "Chaotic Good",
+            beliefs: "Collective identity is reimagined through mythic upheavals.",
+            desires: "To collectively transform through unstable symbolic cycles.",
+            intentions: "Lead the group through ritual chaos toward renewed understanding.",
+            shadow: "Frenzied Cultist (lost in meaningless mania)"
+        }
+    };
+
+    const compatibilityMatrix = {
+        "Navigator": {
+            "Navigator": {
+                score: 85,
+                description: "Highly compatible. Both value structure, methodical approaches, and personal discipline.",
+                challenges: "Risk of becoming too rigid or bureaucratic, may struggle with spontaneity"
+            },
+            "Dreamer": {
+                score: 65,
+                description: "Complementary but different. The Navigator provides structure, the Dreamer provides vision.",
+                challenges: "Potential conflict between practical reality and symbolic interpretation"
+            },
+            "Engineer": {
+                score: 75,
+                description: "Strong alignment on practical goals and structured thinking.",
+                challenges: "Might become too focused on efficiency at the expense of emotional connection"
+            },
+            "Elder": {
+                score: 70,
+                description: "Shared respect for order and tradition, but different collective vs individual approaches.",
+                challenges: "Potential disagreements about individual vs group priorities"
+            },
+            "Opportunist": {
+                score: 40,
+                description: "Fundamentally different worldviews. The Navigator seeks stability, the Opportunist seeks change.",
+                challenges: "Constant tension between structure and chaos, risk of mutual frustration"
+            },
+            "Shaman": {
+                score: 35,
+                description: "Highly divergent perspectives. The Navigator seeks clear paths, the Shaman embraces uncertainty.",
+                challenges: "Extreme difficulty understanding each other's fundamental approach to life"
+            },
+            "RebelCrewman": {
+                score: 30,
+                description: "Almost opposite approaches to life and decision-making.",
+                challenges: "High potential for conflict, very different views on order and change"
+            },
+            "Oracle": {
+                score: 45,
+                description: "Symbolic thinking meets practical mapping, creating an intriguing but challenging dynamic.",
+                challenges: "Struggle to find common ground between personal insight and collective transformation"
+            }
+        },
+        "Dreamer": {
+            "Dreamer": {
+                score: 80,
+                description: "Strong spiritual and symbolic connection, shared understanding of deeper meanings.",
+                challenges: "May get lost in abstractions without practical grounding"
+            },
+            "Engineer": {
+                score: 55,
+                description: "Different approaches but potential for innovation through combining vision with practicality.",
+                challenges: "Difficulty bridging gap between symbolic vision and practical implementation"
+            },
+            "Elder": {
+                score: 85,
+                description: "Strong alignment in symbolic understanding and respect for tradition.",
+                challenges: "May struggle with balancing personal vision against collective tradition"
+            },
+            "Opportunist": {
+                score: 45,
+                description: "Conflicting approaches to meaning and material reality.",
+                challenges: "Tension between spiritual values and practical opportunism"
+            },
+            "Shaman": {
+                score: 90,
+                description: "Deep spiritual connection and shared understanding of symbolic meaning.",
+                challenges: "Risk of losing touch with practical reality"
+            },
+            "RebelCrewman": {
+                score: 40,
+                description: "Different priorities and approaches to change.",
+                challenges: "Conflict between spiritual meaning and practical rebellion"
+            },
+            "Oracle": {
+                score: 80,
+                description: "Strong symbolic alignment and shared appreciation for transformation.",
+                challenges: "May struggle with grounding visions in collective reality"
+            }
+        },
+        "Engineer": {
+            "Engineer": {
+                score: 90,
+                description: "Excellent practical alignment and shared focus on collective efficiency.",
+                challenges: "May become too rigid or mechanical in approach"
+            },
+            "Elder": {
+                score: 75,
+                description: "Shared focus on maintaining collective stability through different means.",
+                challenges: "Tension between practical and symbolic approaches to tradition"
+            },
+            "Opportunist": {
+                score: 35,
+                description: "Conflicting views on stability versus opportunistic change.",
+                challenges: "Fundamental disagreement on how to handle resources and opportunities"
+            },
+            "Shaman": {
+                score: 45,
+                description: "Very different approaches to understanding and managing reality.",
+                challenges: "Difficulty reconciling practical efficiency with spiritual insight"
+            },
+            "RebelCrewman": {
+                score: 50,
+                description: "Both collective-focused but different views on stability versus change.",
+                challenges: "Tension between maintaining order and promoting necessary change"
+            },
+            "Oracle": {
+                score: 55,
+                description: "Can complement each other in managing collective transformation.",
+                challenges: "Struggle between practical stability and symbolic upheaval"
+            }
+        },
+        "Elder": {
+            "Elder": {
+                score: 95,
+                description: "Strongest possible alignment in maintaining collective symbolic tradition.",
+                challenges: "Risk of becoming too resistant to necessary change"
+            },
+            "Opportunist": {
+                score: 25,
+                description: "Fundamental conflict between tradition and opportunistic change.",
+                challenges: "Severe tension between stability and opportunism"
+            },
+            "Shaman": {
+                score: 70,
+                description: "Shared appreciation for symbolic meaning but different approaches.",
+                challenges: "Conflict between maintaining tradition and seeking new insights"
+            },
+            "RebelCrewman": {
+                score: 35,
+                description: "Strong tension between maintaining and challenging tradition.",
+                challenges: "Fundamental disagreement about value of stability"
+            },
+            "Oracle": {
+                score: 75,
+                description: "Both value collective symbols but differ on stability versus change.",
+                challenges: "Balancing preservation of tradition with necessary transformation"
+            }
+        },
+        "Opportunist": {
+            "Opportunist": {
+                score: 60,
+                description: "Can work together exploiting opportunities, but may compete.",
+                challenges: "Risk of mutual betrayal and competition for resources"
+            },
+            "Shaman": {
+                score: 65,
+                description: "Both embrace change but for different reasons.",
+                challenges: "Conflict between material and spiritual motivations"
+            },
+            "RebelCrewman": {
+                score: 70,
+                description: "Shared appreciation for disruption and change.",
+                challenges: "May clash over individual versus collective goals"
+            },
+            "Oracle": {
+                score: 60,
+                description: "Both embrace change but with different focuses.",
+                challenges: "Tension between personal gain and collective transformation"
+            }
+        },
+        "Shaman": {
+            "Shaman": {
+                score: 85,
+                description: "Strong connection through shared spiritual understanding.",
+                challenges: "May become too detached from practical reality"
+            },
+            "RebelCrewman": {
+                score: 60,
+                description: "Both value change but approach it differently.",
+                challenges: "Tension between spiritual and practical approaches to change"
+            },
+            "Oracle": {
+                score: 90,
+                description: "Powerful alignment in understanding symbolic transformation.",
+                challenges: "Risk of losing touch with practical collective needs"
+            }
+        },
+        "RebelCrewman": {
+            "RebelCrewman": {
+                score: 75,
+                description: "Strong alignment in promoting collective change.",
+                challenges: "May create too much chaos without constructive purpose"
+            },
+            "Oracle": {
+                score: 85,
+                description: "Powerful combination of practical and symbolic transformation.",
+                challenges: "Need to balance destructive and constructive change"
+            }
+        },
+        "Oracle": {
+            "Oracle": {
+                score: 90,
+                description: "Profound understanding of collective symbolic transformation.",
+                challenges: "Risk of inducing too much change too quickly"
+            }
+        }
+    };
+
+    function switchTab(tabName) {
+        // Reset tabs
+        document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+        document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+        
+        // Activate selected tab
+        document.querySelector(`.tab[onclick="switchTab('${tabName}')"]`).classList.add('active');
+        document.getElementById(`${tabName}Tab`).classList.add('active');
+
+        if (tabName === 'archetypes') {
+            populateArchetypeDetails();
+        }
+    }
+
+    function populateArchetypeDetails() {
+        const detailsContainer = document.getElementById('archetypeDetails');
+        detailsContainer.innerHTML = Object.values(archetypeData).map(archetype => `
+            <div class="archetype-card">
+                <h3>${archetype.name}</h3>
+                <p><strong>Category:</strong> ${archetype.category}</p>
+                <p><strong>Alignment:</strong> ${archetype.alignment}</p>
+                <p><strong>Beliefs:</strong> ${archetype.beliefs}</p>
+                <p><strong>Desires:</strong> ${archetype.desires}</p>
+                <p><strong>Intentions:</strong> ${archetype.intentions}</p>
+                <p><strong>Shadow:</strong> ${archetype.shadow}</p>
+            </div>
+        `).join('');
+    }
+
+    function checkCompatibility() {
+        const partner1 = document.getElementById('partner1Select').value;
+        const partner2 = document.getElementById('partner2Select').value;
+
+        // Ensure the matrix works both ways
+        const compatibility = compatibilityMatrix[partner1] && compatibilityMatrix[partner1][partner2] || 
+                              compatibilityMatrix[partner2] && compatibilityMatrix[partner2][partner1];
+
+        if (!compatibility) {
+            alert('Compatibility data not found');
+            return;
+        }
+
+        const resultContainer = document.getElementById('compatibilityResult');
+        resultContainer.innerHTML = `
+            <h3>Compatibility Analysis: ${partner1} & ${partner2}</h3>
+            <div class="compatibility-score">
+                <div class="score-bar" style="background-color: ${getColorForScore(compatibility.score)}; width: ${compatibility.score}%"></div>
+            </div>
+            <p><strong>Compatibility Score:</strong> ${compatibility.score}%</p>
+            <p>${compatibility.description}</p>
+            <div class="challenges">
+                <strong>Potential Challenges:</strong>
+                <p>${compatibility.challenges}</p>
+            </div>
+        `;
+    }
+
+    function getColorForScore(score) {
+        if (score > 80) return '#2ecc71';  // Green for high compatibility
+        if (score > 60) return '#f39c12';  // Yellow for moderate
+        return '#e74c3c';  // Red for low
+    }
+
+    // Initialize with first two options
+    checkCompatibility();
+    </script>
+</body>
+</html>

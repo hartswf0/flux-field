@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BDI & Archetype Discovery</title>
+    <style>
+        :root {
+            --bg-light: #f4f4f4;
+            --bg-white: #ffffff;
+            --primary-color: #2c3e50;
+            --secondary-color: #3498db;
+            --text-dark: #333;
+            --border-radius: 12px;
+        }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+            background-color: var(--bg-light);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        .quiz-container {
+            background-color: var(--bg-white);
+            border-radius: var(--border-radius);
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 500px;
+            padding: 30px;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+        .quiz-step {
+            display: none;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.5s ease;
+        }
+        .quiz-step.active {
+            display: block;
+            opacity: 1;
+            transform: translateY(0);
+        }
+        .quiz-progress {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+        .progress-dot {
+            width: 10px;
+            height: 10px;
+            background-color: #ddd;
+            border-radius: 50%;
+            margin: 0 5px;
+            transition: background-color 0.3s;
+        }
+        .progress-dot.active {
+            background-color: var(--primary-color);
+        }
+        .question {
+            margin-bottom: 20px;
+        }
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .option-btn {
+            padding: 12px;
+            background-color: #f8f9fa;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: left;
+        }
+        .option-btn:hover {
+            background-color: var(--secondary-color);
+            color: white;
+            border-color: var(--secondary-color);
+        }
+        .option-btn.selected {
+            background-color: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+        }
+        .btn {
+            padding: 10px 20px;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            text-decoration: none;
+            display: inline-block;
+            margin: 0 10px;
+        }
+        .btn:hover {
+            background-color: var(--secondary-color);
+        }
+        .navigation-btns {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+        }
+        .archetype-card {
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+            text-align: left;
+        }
+        .archetype-card h3 {
+            color: var(--primary-color);
+            margin-bottom: 10px;
+        }
+        .archetype-card p {
+            margin: 5px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="quiz-container">
+        <div class="quiz-progress">
+            <div class="progress-dot active"></div>
+            <div class="progress-dot"></div>
+            <div class="progress-dot"></div>
+            <div class="progress-dot"></div>
+        </div>
+        
+        <div id="quizSteps">
+            <div class="quiz-step active" id="step1">
+                <h2>Beliefs: How do you view the world?</h2>
+                <div class="options">
+                    <button class="option-btn" data-score='{"practical": 1, "negentropic": 1}'>Facts and order bring clarity</button>
+                    <button class="option-btn" data-score='{"symbolic": 1, "entropic": 1}'>Meaning emerges through change</button>
+                    <button class="option-btn" data-score='{"collective": 1, "negentropic": 1}'>Shared efforts create stability</button>
+                    <button class="option-btn" data-score='{"individual": 1, "entropic": 1}'>Personal insight trumps collective wisdom</button>
+                </div>
+            </div>
+
+            <div class="quiz-step" id="step2">
+                <h2>Desires: What drives you?</h2>
+                <div class="options">
+                    <button class="option-btn" data-score='{"practical": 1, "individual": 1}'>To understand and map challenges methodically</button>
+                    <button class="option-btn" data-score='{"symbolic": 1, "collective": 1}'>To maintain deeper cultural meaning</button>
+                    <button class="option-btn" data-score='{"collective": 1, "practical": 1}'>To optimize group performance</button>
+                    <button class="option-btn" data-score='{"entropic": 1, "symbolic": 1}'>To find personal enlightenment through chaos</button>
+                </div>
+            </div>
+
+            <div class="quiz-step" id="step3">
+                <h2>Intentions: How do you act?</h2>
+                <div class="options">
+                    <button class="option-btn" data-score='{"negentropic": 1, "practical": 1}'>Impose structure and create reliable records</button>
+                    <button class="option-btn" data-score='{"symbolic": 1, "collective": 1}'>Sustain traditions that preserve group harmony</button>
+                    <button class="option-btn" data-score='{"entropic": 1, "individual": 1}'>Exploit opportunities in unpredictable environments</button>
+                    <button class="option-btn" data-score='{"collective": 1, "entropic": 1}'>Disrupt stagnant patterns to provoke growth</button>
+                </div>
+            </div>
+
+            <div class="quiz-step" id="step4">
+                <h2>Mental Wellbeing Check</h2>
+                <div class="options">
+                    <button class="option-btn" data-score='{"depression": 0}'>I feel optimistic and engaged</button>
+                    <button class="option-btn" data-score='{"depression": 1}'>I sometimes feel sad or disconnected</button>
+                    <button class="option-btn" data-score='{"depression": 2}'>I frequently struggle with motivation</button>
+                    <button class="option-btn" data-score='{"depression": 3}'>I feel persistently hopeless</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="result-container" style="display: none;">
+            <h2 id="archetype-name"></h2>
+            <p id="archetype-category"></p>
+            <div id="archetype-description"></div>
+            <div class="navigation-btns">
+                <button class="btn" onclick="window.location.href='index.html'">Back to Home</button>
+                <button class="btn" onclick="window.location.href='relat.html'">Explore Relationships</button>
+            </div>
+        </div>
+
+        <div class="navigation-btns">
+            <button id="prevBtn" class="btn" disabled>Previous</button>
+            <button id="nextBtn" class="btn">Next</button>
+        </div>
+    </div>
+
+    <script>
+    const archetypes = [
+        {
+            name: "The Navigator",
+            category: "Practical, Individual, Negentropic",
+            alignment: "Lawful Neutral",
+            beliefs: "Material facts and mapping the unknown bring order.",
+            desires: "To chart and understand the world methodically.",
+            intentions: "Impose structure and produce reliable records of what's encountered.",
+            shadow: "The Wanderer (loses purpose without structure)",
+            challenges: "May become too rigid, struggle with spontaneity, or lose sight of emotional context",
+            description: "You are methodical and structured, finding purpose in charting the unknown and maintaining order through practical means."
+        },
+        {
+            name: "The Dreamer",
+            category: "Symbolic, Individual, Negentropic",
+            alignment: "Neutral Good",
+            beliefs: "Symbolic visions guide reality.",
+            desires: "To interpret signs, maintain deeper meaning.",
+            intentions: "Provide moral and spiritual compass through stable symbolic frameworks.",
+            shadow: "The Doubter (sinks into emptiness without meaning)",
+            challenges: "Can become detached from practical reality, may struggle with concrete action",
+            description: "You seek deeper meaning through personal interpretation of symbols and signs, providing moral guidance while maintaining stable frameworks."
+        },
+        {
+            name: "The Engineer",
+            category: "Practical, Collective, Negentropic",
+            alignment: "Lawful Good",
+            beliefs: "Collective order and shared effort secure survival.",
+            desires: "To make everyone function together seamlessly.",
+            intentions: "Optimize resources and stabilize group operations.",
+            shadow: "The Hoarder (collects without sharing)",
+            challenges: "Risk of prioritizing efficiency over human factors, may become overly controlling",
+            description: "You value collective efficiency and order, working to optimize group resources and operations for the benefit of all."
+        },
+        {
+            name: "The Elder",
+            category: "Symbolic, Collective, Negentropic",
+            alignment: "Lawful Good",
+            beliefs: "Cultural rituals and shared symbols preserve harmony.",
+            desires: "To maintain ancestral rites and societal cohesion.",
+            intentions: "Sustain tradition and reinforce the group's sacred structure.",
+            shadow: "Tradition-Breaker (loses identity without rituals)",
+            challenges: "May resist necessary change, risk becoming too rigid in traditional ways",
+            description: "You are a guardian of cultural traditions, maintaining harmony through shared rituals and symbolic meaning."
+        },
+        {
+            name: "The Opportunist",
+            category: "Practical, Individual, Entropic",
+            alignment: "Chaotic Neutral",
+            beliefs: "Material advantage is personal and ever-shifting.",
+            desires: "To seize moments of gain amid instability.",
+            intentions: "Exploit opportunities in a chaotic environment.",
+            shadow: "The Thief (descends into selfish chaos)",
+            challenges: "May prioritize short-term gains over long-term stability, risk losing trust",
+            description: "You are adaptable and quick to seize advantages, thriving in dynamic situations while maintaining personal independence."
+        },
+        {
+            name: "The Shaman/Outsider",
+            category: "Symbolic, Individual, Entropic",
+            alignment: "Chaotic Good",
+            beliefs: "Truth emerges from flux and hidden meanings.",
+            desires: "To find personal enlightenment in unstable signs.",
+            intentions: "Inspire others through unpredictable revelations.",
+            shadow: "The Trickster (becomes misleading without insight)",
+            challenges: "Risk becoming too esoteric, may struggle to communicate insights clearly",
+            description: "You find truth in chaos and hidden meanings, inspiring others through personal revelations and unconventional wisdom."
+        },
+        {
+            name: "The Rebel Crewman",
+            category: "Practical, Collective, Entropic",
+            alignment: "Chaotic Neutral",
+            beliefs: "Strict order oppresses; collective might must be unsettled.",
+            desires: "To break stagnant patterns through collective upheaval.",
+            intentions: "Disrupt stable structures to provoke growth or liberation.",
+            shadow: "The Saboteur (destroys unity for chaos's sake)",
+            challenges: "May destroy beneficial structures, risk creating chaos without purpose",
+            description: "You challenge established structures, believing that collective growth comes through necessary disruption and change."
+        },
+        {
+            name: "The Oracle",
+            category: "Symbolic, Collective, Entropic",
+            alignment: "Chaotic Good",
+            beliefs: "Collective identity is reimagined through mythic upheavals.",
+            desires: "To collectively transform through unstable symbolic cycles.",
+            intentions: "Lead the group through ritual chaos toward renewed understanding.",
+            shadow: "Frenzied Cultist (lost in meaningless mania)",
+            challenges: "Risk losing touch with practical needs, may create unnecessary upheaval",
+            description: "You guide collective transformation through symbolic upheaval, finding renewal in cycles of change and shared meaning."
+        }
+    ];
+
+    const steps = document.querySelectorAll('.quiz-step');
+    const progressDots = document.querySelectorAll('.progress-dot');
+    const prevBtn = document.getElementById('prevBtn');
+    const nextBtn = document.getElementById('nextBtn');
+    const resultContainer = document.querySelector('.result-container');
+
+    let currentStep = 0;
+    let scores = {
+        practical: 0,
+        symbolic: 0,
+        individual: 0,
+        collective: 0,
+        negentropic: 0,
+        entropic: 0,
+        depression: 0
+    };
+
+    function setupStepListeners() {
+        steps.forEach(step => {
+            const options = step.querySelectorAll('.option-btn');
+            options.forEach(option => {
+                option.addEventListener('click', () => {
+                    // Deselect other buttons in this step
+                    options.forEach(opt => opt.classList.remove('selected'));
+                    option.classList.add('selected');
+
+                    // Add scores
+                    const scoreData = JSON.parse(option.getAttribute('data-score'));
+                    Object.keys(scoreData).forEach(key => {
+                        scores[key] += scoreData[key];
+                    });
+
+                    nextBtn.disabled = false;
+                });
+            });
+        });
+    }
+
+    function determineArchetype() {
+        // Calculate percentages for each axis
+        const totalPracticalSymbolic = scores.practical + scores.symbolic;
+        const totalIndividualCollective = scores.individual + scores.collective;
+        const totalNegentropicEntropic = scores.negentropic + scores.entropic;
+
+        // Convert to percentages (0-100)
+        const practicalPercent = (scores.practical / totalPracticalSymbolic) * 100;
+        const individualPercent = (scores.individual / totalIndividualCollective) * 100;
+        const entropicPercent = (scores.entropic / totalNegentropicEntropic) * 100;
+
+        // Determine primary traits (over 50%)
+        const traits = {
+            practical: practicalPercent > 50,
+            symbolic: practicalPercent <= 50,
+            individual: individualPercent > 50,
+            collective: individualPercent <= 50,
+            entropic: entropicPercent > 50,
+            negentropic: entropicPercent <= 50
+        };
+
+        // Find matching archetype
+        let bestMatch = null;
+        let bestMatchScore = -1;
+
+        archetypes.forEach(archetype => {
+            let matchScore = 0;
+            const category = archetype.category.toLowerCase();
+
+            // Check practical/symbolic alignment
+            if ((traits.practical && category.includes('practical')) ||
+                (traits.symbolic && category.includes('symbolic'))) {
+                matchScore++;
+            }
+
+            // Check individual/collective alignment
+            if ((traits.individual && category.includes('individual')) ||
+                (traits.collective && category.includes('collective'))) {
+                matchScore++;
+            }
+
+            // Check entropic/negentropic alignment
+            if ((traits.entropic && category.includes('entropic')) ||
+                (traits.negentropic && category.includes('negentropic'))) {
+                matchScore++;
+            }
+
+            if (matchScore > bestMatchScore) {
+                bestMatch = archetype;
+                bestMatchScore = matchScore;
+            }
+        });
+
+        // Add score details to the result
+        bestMatch.scoreDetails = {
+            practical: Math.round(practicalPercent),
+            symbolic: Math.round(100 - practicalPercent),
+            individual: Math.round(individualPercent),
+            collective: Math.round(100 - individualPercent),
+            entropic: Math.round(entropicPercent),
+            negentropic: Math.round(100 - entropicPercent)
+        };
+
+        return bestMatch;
+    }
+
+    function displayResult() {
+        const result = determineArchetype();
+        const quizSteps = document.getElementById('quizSteps');
+        
+        document.getElementById('archetype-name').textContent = result.name;
+        document.getElementById('archetype-category').textContent = `Category: ${result.category}`;
+        
+        // Create the profile HTML with score details
+        const profileHtml = `
+            <p><strong>Alignment:</strong> ${result.alignment}</p>
+            <p><strong>Beliefs:</strong> ${result.beliefs}</p>
+            <p><strong>Desires:</strong> ${result.desires}</p>
+            <p><strong>Intentions:</strong> ${result.intentions}</p>
+            <p><strong>Shadow:</strong> ${result.shadow}</p>
+            <p><strong>Potential Challenges:</strong> ${result.challenges}</p>
+            <h3>Your PIE Score Breakdown:</h3>
+            <p>Practical vs Symbolic: ${result.scoreDetails.practical}% / ${result.scoreDetails.symbolic}%</p>
+            <p>Individual vs Collective: ${result.scoreDetails.individual}% / ${result.scoreDetails.collective}%</p>
+            <p>Entropic vs Negentropic: ${result.scoreDetails.entropic}% / ${result.scoreDetails.negentropic}%</p>
+        `;
+        document.getElementById('archetype-description').innerHTML = profileHtml;
+        
+        // Hide quiz, show results
+        quizSteps.style.display = 'none';
+        resultContainer.style.display = 'block';
+    }
+
+    prevBtn.addEventListener('click', () => updateStep('prev'));
+    nextBtn.addEventListener('click', () => {
+        if (currentStep < steps.length - 1) {
+            updateStep('next');
+        } else {
+            displayResult();
+        }
+    });
+
+    function updateStep(direction) {
+        steps[currentStep].classList.remove('active');
+        progressDots[currentStep].classList.remove('active');
+
+        if (direction === 'next') {
+            currentStep++;
+        } else {
+            currentStep--;
+        }
+
+        steps[currentStep].classList.add('active');
+        progressDots[currentStep].classList.add('active');
+
+        // Update button states
+        prevBtn.disabled = currentStep === 0;
+        nextBtn.disabled = !steps[currentStep].querySelector('.selected');
+
+        if (currentStep === steps.length - 1) {
+            nextBtn.textContent = 'Finish';
+        } else {
+            nextBtn.textContent = 'Next';
+        }
+    }
+
+    setupStepListeners();
+    </script>
+</body>
+</html>

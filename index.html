@@ -127,6 +127,26 @@
             border-top: 1px solid #eee;
             margin: 8px 0;
         }
+
+        .quiz-button {
+            display: block;
+            width: 200px;
+            margin: 40px auto;
+            padding: 15px 30px;
+            background-color: #4CAF50;
+            color: white;
+            text-align: center;
+            border-radius: 8px;
+            text-decoration: none;
+            font-size: 18px;
+            font-weight: bold;
+            transition: background-color 0.3s;
+        }
+
+        .quiz-button:hover {
+            background-color: #45a049;
+            cursor: pointer;
+        }
     </style>
 </head>
 <body>
@@ -158,6 +178,8 @@
     </div>
 
     <div id="archetype-cards"></div>
+
+    <a href="prim.html" class="quiz-button">Take the Quiz</a>
 
     <script>
         let scenarioMode = false; 
